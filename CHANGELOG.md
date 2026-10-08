@@ -15,8 +15,9 @@ Todos los cambios notables en este proyecto serán documentados en este archivo 
 - *[A completar por el Equipo 3 tras recibir la PR del Equipo 2]*
 
 ### 📖 Documentación & FAIR (Equipo 3)
-- Creación de la tabla de variables del dataset en `README.md`.
-- Plantilla de citación en formato BibTeX y `CITATION.cff`.
+- Documentación del glosario científico y unidades de las 9 variables del dataset en `README.md`.
+- Estandarización de metadatos FAIR de citación en `CITATION.cff` y bloque BibTeX.
+- Corrección de identificadores persistentes de Digital.CSIC (Handle: 10261/22405) e instrucciones de instalación.
 
 ### 🧪 Testing & CI/CD (Equipo 4)
 - *[A completar por el Equipo 3 tras recibir la PR del Equipo 4]*

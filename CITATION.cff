@@ -5,7 +5,7 @@ authors:
     given-names: "Gustavo"
     orcid: "https://orcid.org/0000-0000-0000-0000"
 title: "CSIC-ClimateWatch: Cuadro de Mando de Cambio Climático y Sequía en España"
-version: 0.1.0
+version: 1.0.0
 date-released: 2026-10-08
-url: "https://github.com/csic/CSIC-ClimateWatch"
+url: "https://github.com/guslicem/proyecto_final_curso_python_2026"
 license: MIT
