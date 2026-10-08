@@ -7,6 +7,7 @@ if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,6 +15,107 @@ import seaborn as sns
 
 from csic_climate.data_loader import load_climate_data, filter_by_region_and_years
 from csic_climate.metrics import calculate_climate_summary, calculate_decadal_trend
+
+
+def render_pdf_download_button(label: str = "📸 Descargar Captura en PDF", height: int = 48):
+    """
+    Renderiza un botón interactivo que realiza una captura de pantalla del navegador
+    y descarga automáticamente un archivo PDF con dicha captura.
+    """
+    html_code = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <meta charset="utf-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+      * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+      body {{ background: transparent; overflow: hidden; font-family: 'Inter', -apple-system, sans-serif; }}
+      .btn-pdf {{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 9px 14px;
+        background: #10B981;
+        color: #FFFFFF;
+        border: 1px solid #059669;
+        border-radius: 8px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }}
+      .btn-pdf:hover {{
+        background: #059669;
+        box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+      }}
+      .btn-pdf:active {{
+        transform: translateY(1px);
+      }}
+      .btn-pdf:disabled {{
+        opacity: 0.7;
+        cursor: not-allowed;
+      }}
+    </style>
+    </head>
+    <body>
+      <button class="btn-pdf" id="pdfBtn" onclick="descargarCapturaPDF()">
+        {label}
+      </button>
+      <script>
+        async function descargarCapturaPDF() {{
+          const btn = document.getElementById('pdfBtn');
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '⏳ Generando PDF...';
+          btn.disabled = true;
+
+          try {{
+            const root = window.parent.document.querySelector('.stApp') || window.parent.document.body;
+            
+            if (typeof html2canvas !== 'undefined' && typeof jspdf !== 'undefined') {{
+              const canvas = await html2canvas(root, {{
+                scale: 1.5,
+                useCORS: true,
+                allowTaint: true,
+                logging: false,
+                backgroundColor: '#0F172A'
+              }});
+
+              const imgData = canvas.toDataURL('image/jpeg', 0.95);
+              const {{ jsPDF }} = jspdf;
+              const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
+              
+              const pdf = new jsPDF({{
+                orientation: orientation,
+                unit: 'px',
+                format: [canvas.width, canvas.height]
+              }});
+
+              pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+              pdf.save('captura_navegador.pdf');
+            }} else {{
+              window.parent.print();
+            }}
+          }} catch (err) {{
+            console.error('Error al generar PDF con html2canvas, usando print():', err);
+            window.parent.print();
+          }} finally {{
+            setTimeout(() => {{
+              btn.innerHTML = originalText;
+              btn.disabled = false;
+            }}, 1000);
+          }}
+        }}
+      </script>
+    </body>
+    </html>
+    """
+    components.html(html_code, height=height)
 
 
 # ==============================================================================
@@ -156,6 +258,16 @@ st.markdown("""
         color: #FFFFFF !important;
         font-weight: 700 !important;
     }
+    
+    @media print {
+        [data-testid="stSidebar"] {
+            display: none !important;
+        }
+        .stApp {
+            background-color: #0F172A !important;
+            color: #F8FAFC !important;
+        }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -221,6 +333,10 @@ year_range = st.sidebar.slider(
 )
 
 st.sidebar.markdown("---")
+st.sidebar.markdown("### 📸 Exportar Informe")
+with st.sidebar:
+    render_pdf_download_button("📸 Descargar Captura en PDF")
+
 st.sidebar.markdown(f"**📊 Registros Activos:** {len(df_raw):,} meses")
 st.sidebar.markdown(f"**🏛️ Comunidades Autónomas:** {len(regiones_disponibles)}")
 st.sidebar.caption("Datos: ERA5 Reanalysis (Copernicus/ECMWF) • Metodología SPEI: IPE-CSIC")
@@ -445,13 +561,18 @@ with tab3:
     st.markdown("### 🧮 Explorador Interactivo del Dataset (Pandas)")
     st.dataframe(df_filtered, width="stretch")
     
-    csv_bytes = df_filtered.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Descargar Dataset Filtrado en Formato CSV",
-        data=csv_bytes,
-        file_name=f"csic_climate_{region_sel}_{year_range[0]}_{year_range[1]}.csv",
-        mime="text/csv"
-    )
+    col_dl1, col_dl2 = st.columns(2)
+    with col_dl1:
+        csv_bytes = df_filtered.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Descargar Dataset Filtrado (CSV)",
+            data=csv_bytes,
+            file_name=f"csic_climate_{region_sel}_{year_range[0]}_{year_range[1]}.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+    with col_dl2:
+        render_pdf_download_button("📸 Descargar Captura en PDF")
 
 with tab4:
     st.markdown("### 👥 Organización del Trabajo en Grupos de GitHub")
