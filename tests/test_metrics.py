@@ -53,13 +53,22 @@ def test_calculate_decadal_trend(sample_climate_data):
 
 
 def test_get_hottest_and_coldest_year(sample_climate_data):
+    """
+    Test 1: Comprueba el cálculo básico del año más cálido y más frío.
+
+    Verifica:
+    - Que el resultado devuelto sea un diccionario.
+    - Que contenga todas las claves requeridas ('hottest_year', 'coldest_year', etc.).
+    - Que los años obtenidos se encuentren dentro del rango histórico válido (1964-2024).
+    """
     start_year = 1990
     end_year = 2020
-    comunidades = ""
+    comunidades = "all"  # Evalúa todas las comunidades disponibles
     result = get_hottest_and_coldest_year(
         sample_climate_data, start_year, end_year, comunidades
     )
 
+    # Validar que devuelve un diccionario con el formato esperado
     assert isinstance(result, dict)
     assert set(result.keys()) == {
         "hottest_year",
@@ -67,40 +76,58 @@ def test_get_hottest_and_coldest_year(sample_climate_data):
         "hottest_value",
         "coldest_value",
     }
-    assert 1964 <= result["hottest_year"] <= 2024
-    assert 1964 <= result["coldest_year"] <= 2024
+
+    # Validar que los años calculados están dentro del rango histórico
+    assert start_year <= result["hottest_year"] <= end_year
+    assert start_year <= result["coldest_year"] <= end_year
+
+    # Validar presencia explícita de campos clave y métricas
     assert "hottest_year" in result and "coldest_year" in result
     assert "hottest_value" in result and "coldest_value" in result
 
 
 def test_get_hottest_and_coldest_year_filtered_range(multi_region_climate_data):
-    """Prueba que el rango de años acote correctamente."""
-    # Si limitamos a 1990-2000, el año 2020 no debe aparecer
+    """
+    Test 2: Comprueba el filtrado por rango de años y lista de comunidades.
+
+    Verifica:
+    - Que al restringir el rango de años (ej. 1990-2000), los registros fuera de
+      dicho rango queden excluidos del cálculo.
+    - Que el filtrado por una lista específica de comunidades autónomas se aplique
+      correctamente sin interferir con otras regiones.
+    """
+    start_year = 1990
+    end_year = 2000
+    comunidades = ["Andalucía", "Madrid", "Cataluña", "Galicia"]
+
     result = get_hottest_and_coldest_year(
         multi_region_climate_data,
-        start_year=1990,
-        end_year=2000,
-        comunidades=["Andalucía", "Madrid", "Cataluña", "Galicia"],
+        start_year=start_year,
+        end_year=end_year,
+        comunidades=comunidades,
     )
-    assert 1964 <= result["hottest_year"] <= 2024
-    assert 1964 <= result["coldest_year"] <= 2024
+
+    # Comprobación de tipos y límites históricos de los resultados filtrados
+    assert isinstance(result, dict)
+    assert start_year <= result["hottest_year"] <= end_year
+    assert start_year <= result["coldest_year"] <= end_year
 
 
 def test_get_hottest_and_coldest_year_empty():
-    """Prueba el manejo de un DataFrame vacío."""
+    """
+    Test 3: Comprueba la robustez ante un DataFrame vacío o sin registros.
+
+    Verifica:
+    - Que la función no lance excepciones no controladas cuando el DataFrame está vacío.
+    - Que retorne None o un diccionario con valores nulos de forma segura.
+    """
     empty_df = pd.DataFrame(
-        columns=["year", "comunidad_autonoma", "anomalia_termica_c"]
+        columns=[
+            "year",
+            "comunidad_autonoma",
+            "anomalia_termica_c",
+            "temperatura_media_c",
+        ]
     )
     result = get_hottest_and_coldest_year(empty_df)
     assert result is None or result.get("hottest_year") is None
-
-    """
-
-{
-    "hottest_year": año,
-    "coldest_year": año,
-    "hottest_value": temp,
-    "coldest_value": temp
-}
-
-    """
