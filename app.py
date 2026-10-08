@@ -403,6 +403,31 @@ with tab2:
 
     with col_rank2:
         st.markdown("##### 🏜️ Top Comunidades con Mayor Impacto de Olas de Calor (Días Acumulados)")
+        
+        # 1. Calcular el número acumulado de días en ola de calor en el periodo y región seleccionados
+        dias_ola_calor_sel = int(df_filtered["dias_ola_calor"].sum())
+        
+        # 2. Alerta Dinámica: Si el número total de días supera los 20 días
+        if dias_ola_calor_sel > 20:
+            st.warning("⚠️ Alerta Climática: Se han superado los 20 días en ola de calor en el periodo seleccionado")
+            
+        # 3. Comparativa: Mostrar la diferencia en días frente al promedio de todas las comunidades en ese mismo rango temporal
+        promedio_comunidades = round(float(df_region_summary["dias_ola_calor"].mean()), 1)
+        diferencia_promedio = round(dias_ola_calor_sel - promedio_comunidades, 1)
+        signo = "+" if diferencia_promedio > 0 else ""
+        
+        if region_sel != "Todas":
+            st.info(
+                f"📊 **Comparativa regional:** **{region_sel}** acumula **{dias_ola_calor_sel}** días de ola de calor en el periodo {year_range[0]} - {year_range[1]}. "
+                f"Diferencia frente al promedio de todas las comunidades ({promedio_comunidades} días): **{signo}{diferencia_promedio} días**."
+            )
+        else:
+            st.info(
+                f"📊 **Comparativa regional:** En el conjunto de comunidades se acumulan **{dias_ola_calor_sel}** días de ola de calor "
+                f"(promedio de **{promedio_comunidades} días** por comunidad; diferencia: **{signo}{diferencia_promedio} días**). "
+                f"Selecciona una comunidad en la barra lateral para ver su comparativa individual."
+            )
+        
         df_sorted_heat = df_region_summary.sort_values(by="dias_ola_calor", ascending=False).head(10)
         
         fig_rank2, ax_r2 = plt.subplots(figsize=(7, 4.5))
