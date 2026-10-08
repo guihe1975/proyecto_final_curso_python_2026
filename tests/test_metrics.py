@@ -80,7 +80,7 @@ def test_get_hottest_and_coldest_year_filtered_range(multi_region_climate_data):
         multi_region_climate_data,
         start_year=1990,
         end_year=2000,
-        comunidades=["Andalucía"],
+        comunidades=["Andalucía", "Madrid", "Cataluña", "Galicia"],
     )
     assert 1964 <= result["hottest_year"] <= 2024
     assert 1964 <= result["coldest_year"] <= 2024
@@ -93,9 +93,6 @@ def test_get_hottest_and_coldest_year_empty():
     )
     result = get_hottest_and_coldest_year(empty_df)
     assert result is None or result.get("hottest_year") is None
-
-    assert 1964 <= result["hottest_year"] <= 2024
-    assert 1964 <= result["coldest_year"] <= 2024
 
     """
 
